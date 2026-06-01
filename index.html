@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBite AI Chatbot Desk</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom stylesheet (relative path for GitHub Pages subfolder support) -->
+    <link rel="stylesheet" href="static/css/styles.css">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    <div class="glow-bg-secondary"></div>
+    
+    <div class="app-container">
+        <!-- Top Navigation Bar -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 13.84 2.5 15.56 3.37 17.03L2.03 21.97L7.13 20.68C8.56 21.52 10.22 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.36 16.7C16.14 17.32 15.11 17.84 14.54 17.89C14.05 17.93 13.41 17.95 11.23 17.04C8.44 15.88 6.64 13.04 6.5 12.85C6.36 12.67 5.34 11.31 5.34 9.91C5.34 8.5 6.07 7.82 6.31 7.57C6.5 7.37 6.81 7.27 7.11 7.27C7.21 7.27 7.3 7.28 7.38 7.28C7.62 7.29 7.74 7.31 7.9 7.69C8.1 8.18 8.59 9.38 8.65 9.5C8.71 9.62 8.77 9.77 8.69 9.93C8.61 10.09 8.54 10.18 8.42 10.32C8.3 10.46 8.19 10.57 8.07 10.72C7.96 10.85 7.83 11 7.98 11.26C8.13 11.51 8.65 12.37 9.42 13.06C10.42 13.95 11.23 14.23 11.53 14.36C11.78 14.46 12.08 14.43 12.26 14.24C12.49 14 12.77 13.62 13.06 13.22C13.26 12.93 13.52 12.89 13.78 12.99C14.05 13.09 15.48 13.8 15.77 13.95C16.06 14.1 16.25 14.17 16.32 14.3C16.39 14.43 16.39 15.08 16.17 15.7C15.95 16.32 16.58 16.08 16.36 16.7Z" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>SmartBite AI</h1>
+                    <p>WhatsApp Marketing & Automation Desk</p>
+                </div>
+            </div>
+            
+            <div class="header-controls">
+                <button class="btn-refresh" id="changeApiUrlBtn" style="padding: 8px 14px; border-radius: 20px;">
+                    🔗 API: <span id="apiStatusText" style="font-weight:700;">Local</span>
+                </button>
+
+                <div class="bot-status-container">
+                    <span class="status-label">Bot Status:</span>
+                    <label class="switch">
+                        <input type="checkbox" id="botStatusToggle" checked>
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="status-text active" id="botStatusText">Active</span>
+                </div>
+                
+                <div class="stats-badge">
+                    <span class="pulse-dot"></span>
+                    <span>Live Monitoring</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="dashboard-grid">
+            <!-- Left Side: Config & Control Panel -->
+            <section class="control-panel glass">
+                <div class="panel-tabs">
+                    <button class="tab-btn active" data-tab="general">
+                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.14 12.94C19.18 12.63 19.2 12.32 19.2 12C19.2 11.68 19.18 11.37 19.14 11.06L21.52 9.2C21.73 9.03 21.79 8.74 21.65 8.5L19.38 4.56C19.24 4.32 18.95 4.23 18.7 4.33L15.9 5.46C15.32 5.02 14.68 4.67 14 4.39L13.58 1.41C13.53 1.15 13.31 0.96 13.04 0.96H8.48C8.21 0.96 7.99 1.15 7.94 1.41L7.52 4.39C6.84 4.67 6.2 5.03 5.62 5.46L2.82 4.33C2.57 4.23 2.28 4.32 2.14 4.56L0.14 8.5C0 8.74 0.07 9.03 0.28 9.2L2.66 11.06C2.62 11.37 2.6 11.68 2.6 12C2.6 12.32 2.62 12.63 2.66 12.94L0.28 14.8C0.07 14.97 0 15.26 0.14 15.5L2.41 19.44C2.55 19.68 2.84 19.77 3.09 19.67L5.89 18.54C6.47 18.98 7.11 19.33 7.79 19.61L8.21 22.59C8.26 22.85 8.48 23.04 8.75 23.04H13.31C13.58 23.04 13.8 22.85 13.85 22.59L14.27 19.61C14.95 19.33 15.59 18.97 16.17 18.54L18.97 19.67C19.22 19.77 19.51 19.68 19.65 19.44L21.92 15.5C22.06 15.26 21.99 14.97 21.78 14.8L19.14 12.94ZM11 16.5C8.51 16.5 6.5 14.49 6.5 12C6.5 9.51 8.51 7.5 11 7.5C13.49 7.5 15.5 9.51 15.5 12C15.5 14.49 13.49 16.5 11 16.5Z" fill="currentColor"/>
+                        </svg>
+                        General Settings
+                    </button>
+                    <button class="tab-btn" data-tab="responses">
+                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H5.17L4 17.17V4H20V16Z" fill="currentColor"/>
+                        </svg>
+                        Auto-Responses
+                    </button>
+                    <button class="tab-btn" data-tab="keywords">
+                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 3H7C5.9 3 5.01 3.9 5.01 5L5 21L12 18L19 21V5C19 3.9 18.1 3H17ZM17 18L12 15.82L7 18V5H17V18Z" fill="currentColor"/>
+                        </svg>
+                        Custom Keywords
+                    </button>
+                    <button class="tab-btn" data-tab="handoffs" id="handoffTabBtn">
+                        <svg class="tab-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="currentColor"/>
+                        </svg>
+                        Handoff Inbox <span class="notification-badge hidden" id="handoffBadge">0</span>
+                    </button>
+                </div>
+
+                <div class="panel-content-container">
+                    <!-- Tab 1: General Settings -->
+                    <div class="tab-content active" id="tab-general">
+                        <h2 class="section-title">General & Working Hours</h2>
+                        
+                        <div class="settings-form-group">
+                            <label for="businessNameInput">Business Display Name</label>
+                            <input type="text" id="businessNameInput" class="custom-input" placeholder="e.g. SmartBite Bistro">
+                            <p class="input-hint">The brand name shown in chat greeting messages and notifications.</p>
+                        </div>
+                        
+                        <div class="settings-form-group">
+                            <div class="label-row">
+                                <label for="workingHoursInput">Bot Active Hours (HH:MM - HH:MM)</label>
+                                <span class="badge badge-accent">Auto Outside Hours Reply</span>
+                            </div>
+                            <input type="text" id="workingHoursInput" class="custom-input" placeholder="e.g. 11:00-23:00">
+                            <p class="input-hint">Use 24-hour format. Messages arriving outside this window will automatically have the Off-Hours Notice appended.</p>
+                        </div>
+                        
+                        <div class="settings-form-group">
+                            <label for="offHoursMsgInput">Off-Hours Warning Message</label>
+                            <textarea id="offHoursMsgInput" class="custom-textarea" rows="3" placeholder="We are currently closed..."></textarea>
+                            <p class="input-hint">Injected into responses if customer texts outside your active hours.</p>
+                        </div>
+
+                        <div class="settings-form-group">
+                            <label for="ownerPhoneInput">Business Owner Notification Phone Number</label>
+                            <input type="text" id="ownerPhoneInput" class="custom-input" placeholder="e.g. +919876543210">
+                            <p class="input-hint">The WhatsApp/SMS number that receives alerts when a customer requests to "Talk to human".</p>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <svg class="info-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V11H13V17ZM13 9H11V7H13V9Z" fill="currentColor"/>
+                                </svg>
+                                <h4>Twilio Webhook Integration</h4>
+                            </div>
+                            <p>To connect your real WhatsApp number, configure your Twilio Sandbox or live WhatsApp sender with the following webhook URL:</p>
+                            <div class="code-box">
+                                <code id="webhookUrlCode">https://your-railway-url.railway.app/webhook</code>
+                                <button class="copy-btn" id="copyWebhookBtn">Copy</button>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="saveGeneralBtn">Save Configurations</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab 2: Auto Responses -->
+                    <div class="tab-content" id="tab-responses">
+                        <h2 class="section-title">Core Chatbot Auto-Replies</h2>
+                        <p class="section-desc">Customize responses for standard WhatsApp menu choices. Use <code>*text*</code> for bold, <code>_text_</code> for italic, and emojis generously to fit standard WhatsApp styling.</p>
+
+                        <div class="settings-form-group">
+                            <label for="greetingMsgInput">Default Greeting Message (Home / Fallback)</label>
+                            <textarea id="greetingMsgInput" class="custom-textarea" rows="4" placeholder="Welcome to Bistro..."></textarea>
+                            <p class="input-hint">Sent when a user messages for the first time or types an unknown keyword.</p>
+                        </div>
+
+                        <div class="settings-form-group">
+                            <div class="label-row">
+                                <label for="menuContentInput">1️⃣ Menu Auto-Reply</label>
+                                <span class="char-count" id="menuCount">0 characters</span>
+                            </div>
+                            <textarea id="menuContentInput" class="custom-textarea" rows="5" placeholder="🍔 Starters..."></textarea>
+                        </div>
+
+                        <div class="settings-form-group">
+                            <div class="label-row">
+                                <label for="priceContentInput">2️⃣ Combo & Pricing List Auto-Reply</label>
+                                <span class="char-count" id="priceCount">0 characters</span>
+                            </div>
+                            <textarea id="priceContentInput" class="custom-textarea" rows="5" placeholder="💰 Solo feast..."></textarea>
+                        </div>
+
+                        <div class="settings-form-group">
+                            <div class="label-row">
+                                <label for="locationContentInput">3️⃣ Location & Map Address Auto-Reply</label>
+                                <span class="char-count" id="locCount">0 characters</span>
+                            </div>
+                            <textarea id="locationContentInput" class="custom-textarea" rows="4" placeholder="📍 We are located..."></textarea>
+                        </div>
+
+                        <div class="settings-form-group">
+                            <div class="label-row">
+                                <label for="timingsContentInput">4️⃣ Timings & Working Hours Auto-Reply</label>
+                                <span class="char-count" id="timeCount">0 characters</span>
+                            </div>
+                            <textarea id="timingsContentInput" class="custom-textarea" rows="4" placeholder="⏰ Operating Hours..."></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="saveResponsesBtn">Save Auto-Replies</button>
+                        </div>
+                    </div>
+
+                    <!-- Tab 3: Custom Keywords -->
+                    <div class="tab-content" id="tab-keywords">
+                        <h2 class="section-title">Manage Custom Keywords</h2>
+                        <p class="section-desc">Create custom keywords so when a customer types a matching word (e.g. <code>wifi</code> or <code>offer</code>), the bot instantly sends your custom reply!</p>
+
+                        <!-- Add Keyword Form -->
+                        <div class="add-keyword-card">
+                            <h3>⚡ Add New Custom Keyword Rule</h3>
+                            <div class="keyword-form-row">
+                                <div class="input-block">
+                                    <label for="newKwInput">Keyword</label>
+                                    <input type="text" id="newKwInput" class="custom-input" placeholder="e.g. wifi, coupon, discount">
+                                </div>
+                                <div class="input-block response-block">
+                                    <label for="newKwResponse">Auto-Reply Text</label>
+                                    <textarea id="newKwResponse" class="custom-input" rows="1" placeholder="e.g. Password is 'bistroguest' 📶"></textarea>
+                                </div>
+                                <button class="btn btn-add" id="addKwBtn">
+                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+                                        <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
+                                    </svg>
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+
+                        <h3 class="subsection-title">Active Rules (<span id="kwCountText">0</span>)</h3>
+                        <div class="keywords-list-container" id="keywordsList">
+                            <!-- Populated dynamically via JS -->
+                            <div class="loading-spinner">Loading keywords...</div>
+                        </div>
+                    </div>
+
+                    <!-- Tab 4: Handoff Inbox -->
+                    <div class="tab-content" id="tab-handoffs">
+                        <div class="handoff-header-row">
+                            <h2 class="section-title">Human Handoff Alerts</h2>
+                            <button class="btn-refresh" id="refreshHandoffsBtn">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4C7.58 4 4.01 7.58 4.01 12C4.01 16.42 7.58 20 12 20C15.73 20 18.84 17.45 19.73 14H17.65C16.83 16.33 14.61 18 12 18C8.69 18 6 15.31 6 12C6 8.69 8.69 6 12 6C13.66 6 15.14 6.69 16.22 7.78L13 11H20V4L17.65 6.35Z" fill="currentColor"/>
+                                </svg>
+                                Refresh
+                            </button>
+                        </div>
+                        <p class="section-desc">When a customer sends "human" or "talk to human", their chat is registered below as a pending request. Click "Resolve" when you have taken over the conversation manually.</p>
+
+                        <div class="handoffs-list" id="handoffsList">
+                            <!-- Populated dynamically via JS -->
+                            <div class="no-handoffs">
+                                <div class="check-icon">✓</div>
+                                <h4>All Clear!</h4>
+                                <p>No customers are waiting for a human agent right now.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Side: Live Interactive Phone Simulator -->
+            <section class="simulator-panel glass">
+                <div class="phone-container">
+                    <div class="phone-notch"></div>
+                    <div class="phone-header">
+                        <div class="phone-time" id="phoneTime">12:30 PM</div>
+                        <div class="phone-icons">
+                            <!-- Signal Strength SVG -->
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                                <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.07 19.57 10.48 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+                            </svg>
+                            <!-- Wifi SVG -->
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+                                <path d="M12 21l-12-12c6.627-6.627 17.373-6.627 24 0l-12 12z"/>
+                            </svg>
+                            <!-- Battery SVG -->
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                <path d="M17 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 12H3V7h14v10zm2-8h2v6h-2V9z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- WhatsApp Header -->
+                    <div class="wa-header">
+                        <div class="wa-avatar-area">
+                            <div class="wa-back-btn">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                                </svg>
+                            </div>
+                            <div class="wa-avatar">
+                                <span class="wa-avatar-text" id="avatarLetter">S</span>
+                                <span class="wa-status-badge"></span>
+                            </div>
+                            <div class="wa-title-container">
+                                <h3 id="waBizName">SmartBite Bistro</h3>
+                                <p class="wa-status">Online (Bot)</p>
+                            </div>
+                        </div>
+                        <div class="wa-action-icons">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4zM14 13h-3v3H9v-3H6v-2h3V8h2v3h3v2z"/>
+                            </svg>
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Chat Message Area -->
+                    <div class="wa-chat-area" id="chatArea">
+                        <div class="chat-date-badge">TODAY</div>
+                        
+                        <!-- Bot Greeting Message -->
+                        <div class="msg-bubble incoming animate-pop">
+                            <div class="msg-text" id="simInitialGreeting">
+                                Welcome to *SmartBite Bistro*! 🍽️ How can we help you today? Reply with:<br><br>
+                                1️⃣ *Menu* - View our daily specials & food menu<br>
+                                2️⃣ *Price* - See pricing & combo details<br>
+                                3️⃣ *Location* - Get Google Maps address<br>
+                                4️⃣ *Timings* - View opening & closing hours<br>
+                                5️⃣ *Human* - Connect to a live agent
+                            </div>
+                            <div class="msg-time" id="greetingTime">12:30 PM</div>
+                        </div>
+                    </div>
+
+                    <!-- Typing Indicator -->
+                    <div class="wa-typing-indicator hidden" id="typingIndicator">
+                        <span class="typing-name" id="typingName">SmartBite Bistro</span> is typing
+                        <div class="typing-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input Controls -->
+                    <form class="wa-input-area" id="chatSendForm">
+                        <div class="wa-input-container">
+                            <div class="wa-emoji-btn">😊</div>
+                            <input type="text" id="chatMsgInput" placeholder="Type a message..." autocomplete="off">
+                            <div class="wa-clip-btn">
+                                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                                    <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .83-.67 1.5-1.5 1.5s-1.5-.67-1.5-1.5V6H9v9.5a3 3 0 0 0 6 0V5a4 4 0 0 0-8 0v12.5a5.5 5.5 0 0 0 11 0V6h-1.5z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <button type="submit" class="wa-send-btn">
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" style="margin-left: 2px;">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Simulator Info Card -->
+                <div class="sim-info-badge">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V11H13V17ZM13 9H11V7H13V9Z" fill="currentColor"/>
+                    </svg>
+                    <span>Use this live visual simulator to instantly preview chatbot responses. Try typing <b>menu</b>, <b>price</b>, or <b>human</b>!</span>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Backend Connection Modal (Allows linking pages dashboard to any remote Railway/ngrok backend) -->
+    <div id="connectionModal" class="modal-overlay hidden">
+        <div class="modal-card glass">
+            <div class="modal-header">
+                <h3>🔗 Connect Chatbot Backend</h3>
+            </div>
+            <p class="modal-desc">This dashboard is hosted on GitHub Pages. To view configurations and test the WhatsApp simulator, please input your live cloud backend URL (e.g. Railway or ngrok URL):</p>
+            <div class="settings-form-group">
+                <input type="text" id="backendUrlInput" class="custom-input" placeholder="https://whats-app-chatbot-production.up.railway.app">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="connectBackendBtn">Save & Synchronize</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden">Settings updated successfully!</div>
+
+    <!-- Main JavaScript App (Relative path for GitHub Pages subfolder support) -->
+    <script src="static/js/app.js"></script>
+</body>
+</html>
