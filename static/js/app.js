@@ -62,22 +62,44 @@ document.addEventListener("DOMContentLoaded", () => {
     const connectionModal = document.getElementById("connectionModal");
     const backendUrlInput = document.getElementById("backendUrlInput");
     const connectBackendBtn = document.getElementById("connectBackendBtn");
+    const launchDemoBtn = document.getElementById("launchDemoBtn");
     const changeApiUrlBtn = document.getElementById("changeApiUrlBtn");
     const apiStatusText = document.getElementById("apiStatusText");
 
-    // Dynamic API routing logic
+    // Dynamic API routing & Demo state
     const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     let API_BASE_URL = isLocalhost ? "" : (localStorage.getItem("chatbot_api_url") || "");
+    let isDemoMode = API_BASE_URL === "demo";
+
+    // Standard mockup fallback configuration for Demo Mode
+    const defaultDemoConfig = {
+        status: true,
+        business_name: "SmartBite Bistro",
+        working_hours: "11:00-23:00",
+        off_hours_message: "We are currently closed, but we have received your message and will reply first thing tomorrow!",
+        owner_phone: "+919876543210",
+        greeting_message: "Welcome to *SmartBite Bistro*! 🍽️ How can we help you today? Reply with:\n\n1️⃣ *Menu* - View our daily specials & food menu\n2️⃣ *Price* - See pricing & combo details\n3️⃣ *Location* - Get Google Maps address\n4️⃣ *Timings* - View opening & closing hours\n5️⃣ *Human* - Connect to a live agent",
+        menu_content: "🍔 *SMARTBITE SPECIALS* 🍔\n\n1. Double Cheese Volcano Burger - *₹189*\n2. Peri-Peri Crispy Chicken Wrap - *₹149*\n3. Sizzling Brownie with Ice Cream - *₹129*\n\nReply with *2* to see our combo deals!",
+        price_content: "💰 *BISTRONOMY COMBOS* 💰\n\n• *Solo Feast:* 1 Burger + 1 Fries + 1 Coke - *₹249*\n• *Buddy Pack:* 2 Wraps + 1 Loaded Fries + 2 Cokes - *₹399*\n• *Family Treat:* 2 Burgers + 2 Wraps + 1 Brownie - *₹599*",
+        location_content: "📍 *OUR BISTRO ADDRESS* 📍\n\nSmartBite Bistro, Ground Floor, Elite Plaza, Main Road, Guntakal.\n\nGoogle Maps Link: _https://maps.google.com/?q=SmartBite+Bistro_",
+        timings_content: "⏰ *OPERATING HOURS* ⏰\n\nWe serve fresh happiness everyday:\n• *Monday - Sunday:* 11:00 AM - 11:00 PM\n\nNote: Last kitchen order closes at 10:45 PM.",
+        custom_keywords: [
+            { keyword: "wifi", response: "📶 Guest Wi-Fi password is *smartbiteguest2026*" },
+            { keyword: "offer", response: "🎉 Use code *BITE10* to get 10% off on orders above ₹499!" }
+        ]
+    };
 
     // Update connection status visual tags
     function updateConnectionStateUI() {
-        if (isLocalhost && !localStorage.getItem("chatbot_api_url")) {
+        if (isDemoMode) {
+            if (apiStatusText) apiStatusText.textContent = "Demo (Sandbox)";
+            if (webhookUrlCode) webhookUrlCode.textContent = "https://demo-mode.api/webhook";
+        } else if (isLocalhost && !localStorage.getItem("chatbot_api_url")) {
             if (apiStatusText) apiStatusText.textContent = "Local";
             if (webhookUrlCode) webhookUrlCode.textContent = `${window.location.origin}/webhook`;
         } else {
             const displayUrl = API_BASE_URL || "Not Connected";
             if (apiStatusText) {
-                // Shorten string for neat button fitting
                 const clean = displayUrl.replace(/^https?:\/\//i, '');
                 apiStatusText.textContent = clean.length > 15 ? clean.substring(0, 13) + '...' : clean;
             }
@@ -94,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let minutes = now.getMinutes();
         const ampm = hours >= 12 ? 'PM' : 'AM';
         hours = hours % 12;
-        hours = hours ? hours : 12; // 0 should be 12
+        hours = hours ? hours : 12;
         minutes = minutes < 10 ? '0' + minutes : minutes;
         const timeStr = `${hours}:${minutes} ${ampm}`;
         
@@ -161,12 +183,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let html = text
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt bridge;");
-            
-        // Restore broken replacement
-        html = text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
 
         // Bold: *text* -> <b>text</b>
@@ -184,12 +200,22 @@ document.addEventListener("DOMContentLoaded", () => {
         return html;
     }
 
-    // Load configurations from backend
+    // Load configurations from backend or localStorage in Demo Mode
     async function loadConfig() {
         try {
-            const response = await fetch(API_BASE_URL + "/api/config");
-            if (!response.ok) throw new Error("Network issues loading config.");
-            configData = await response.json();
+            if (isDemoMode) {
+                const stored = localStorage.getItem("demo_chatbot_config");
+                if (stored) {
+                    configData = JSON.parse(stored);
+                } else {
+                    configData = defaultDemoConfig;
+                    localStorage.setItem("demo_chatbot_config", JSON.stringify(defaultDemoConfig));
+                }
+            } else {
+                const response = await fetch(API_BASE_URL + "/api/config");
+                if (!response.ok) throw new Error("Network issues loading config.");
+                configData = await response.json();
+            }
             
             // Populate inputs
             if (botStatusToggle) {
@@ -233,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
             console.error("Error fetching config:", error);
-            showToast("⚠️ Failed to load settings from server.");
+            showToast("⚠️ Failed to load settings. Server is offline.");
         }
     }
 
@@ -256,17 +282,22 @@ document.addEventListener("DOMContentLoaded", () => {
             updateStatusText(isActive);
             configData.status = isActive;
             
-            try {
-                const response = await fetch(API_BASE_URL + "/api/config", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(configData)
-                });
-                if (response.ok) {
-                    showToast(isActive ? "Bot activated successfully! 🟢" : "Bot paused successfully. 🔴");
+            if (isDemoMode) {
+                localStorage.setItem("demo_chatbot_config", JSON.stringify(configData));
+                showToast(isActive ? "Demo Bot activated! 🟢" : "Demo Bot paused. 🔴");
+            } else {
+                try {
+                    const response = await fetch(API_BASE_URL + "/api/config", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(configData)
+                    });
+                    if (response.ok) {
+                        showToast(isActive ? "Bot activated successfully! 🟢" : "Bot paused successfully. 🔴");
+                    }
+                } catch (error) {
+                    console.error("Error saving status toggle:", error);
                 }
-            } catch (error) {
-                console.error("Error saving status toggle:", error);
             }
         });
     }
@@ -307,8 +338,13 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Core helper to POST configuration back to the API
+    // Core helper to POST configuration
     async function saveAllConfig(successMessage) {
+        if (isDemoMode) {
+            localStorage.setItem("demo_chatbot_config", JSON.stringify(configData));
+            showToast(successMessage + " (Saved to Demo State)");
+            return;
+        }
         try {
             const response = await fetch(API_BASE_URL + "/api/config", {
                 method: "POST",
@@ -420,11 +456,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Handoff Inbox Management
     async function fetchHandoffs() {
-        if (!API_BASE_URL && !isLocalhost) return; // Wait for active api
+        if (!isDemoMode && !API_BASE_URL && !isLocalhost) return;
         try {
-            const response = await fetch(API_BASE_URL + "/api/handoffs");
-            if (!response.ok) throw new Error("HTTP error fetching handoffs.");
-            handoffData = await response.json();
+            if (isDemoMode) {
+                const stored = localStorage.getItem("demo_handoffs");
+                if (stored) {
+                    handoffData = JSON.parse(stored);
+                } else {
+                    handoffData = [
+                        { id: 1, phone: "+919876543210", timestamp: "Today at 12:05 PM", initial_message: "Need to speak with a human support agent", status: "Pending" }
+                    ];
+                    localStorage.setItem("demo_handoffs", JSON.stringify(handoffData));
+                }
+            } else {
+                const response = await fetch(API_BASE_URL + "/api/handoffs");
+                if (!response.ok) throw new Error("HTTP error fetching handoffs.");
+                handoffData = await response.json();
+            }
             
             renderHandoffs(handoffData);
         } catch (error) {
@@ -443,7 +491,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (pendingCount > 0) {
                 handoffBadge.textContent = pendingCount;
                 handoffBadge.classList.remove("hidden");
-                // Pulsate the Handoff button if pending exists!
                 document.getElementById("handoffTabBtn").classList.add("pulsing-tab");
             } else {
                 handoffBadge.classList.add("hidden");
@@ -492,18 +539,25 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll(".btn-resolve").forEach(btn => {
             btn.addEventListener("click", async () => {
                 const handoffId = parseInt(btn.getAttribute("data-id"));
-                try {
-                    const response = await fetch(API_BASE_URL + "/api/handoffs/resolve", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ id: handoffId })
-                    });
-                    if (response.ok) {
-                        showToast("Handoff request resolved.");
-                        fetchHandoffs();
+                if (isDemoMode) {
+                    handoffData = handoffData.map(h => h.id === handoffId ? { ...h, status: "Resolved" } : h);
+                    localStorage.setItem("demo_handoffs", JSON.stringify(handoffData));
+                    showToast("Demo handoff resolved!");
+                    renderHandoffs(handoffData);
+                } else {
+                    try {
+                        const response = await fetch(API_BASE_URL + "/api/handoffs/resolve", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ id: handoffId })
+                        });
+                        if (response.ok) {
+                            showToast("Handoff request resolved.");
+                            fetchHandoffs();
+                        }
+                    } catch (error) {
+                        console.error("Error resolving handoff:", error);
                     }
-                } catch (error) {
-                    console.error("Error resolving handoff:", error);
                 }
             });
         });
@@ -521,15 +575,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 showToast("⚠️ Please enter a valid URL.");
                 return;
             }
-            // Strip trailing slash
             if (url.endsWith("/")) {
                 url = url.slice(0, -1);
             }
-            // Add protocol if missing
             if (!/^https?:\/\//i.test(url)) {
                 url = "http://" + url;
             }
             
+            isDemoMode = false;
             API_BASE_URL = url;
             localStorage.setItem("chatbot_api_url", url);
             if (connectionModal) connectionModal.classList.add("hidden");
@@ -541,16 +594,95 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Launch Demo Mode trigger click handler
+    if (launchDemoBtn) {
+        launchDemoBtn.addEventListener("click", async () => {
+            isDemoMode = true;
+            API_BASE_URL = "demo";
+            localStorage.setItem("chatbot_api_url", "demo");
+            if (connectionModal) connectionModal.classList.add("hidden");
+            showToast("⚡ Launched Sandbox Demo Mode!");
+            
+            updateConnectionStateUI();
+            await loadConfig();
+            await fetchHandoffs();
+        });
+    }
+
     // Change API URL button click
     if (changeApiUrlBtn) {
         changeApiUrlBtn.addEventListener("click", () => {
             if (backendUrlInput) {
-                backendUrlInput.value = API_BASE_URL || "";
+                backendUrlInput.value = isDemoMode ? "" : (API_BASE_URL || "");
             }
             if (connectionModal) connectionModal.classList.remove("hidden");
         });
     }
 
+    // Client-side simulator processing for sandbox Demo Mode
+    function processDemoSimulatorReply(text) {
+        const clean = text.toLowerCase().trim();
+        let reply = "";
+        let handoff = false;
+
+        // Check if bot disabled globally in configuration
+        if (!configData.status) {
+            return {
+                response: "⚠️ *Auto-Reply Bot is Offline.*\n\nThe business owner has temporarily disabled automatic replies.",
+                handoff_triggered: false
+            };
+        }
+
+        if (clean === "menu" || clean === "1" || clean === "1️⃣") {
+            reply = configData.menu_content;
+        } else if (clean === "price" || clean === "pricing" || clean === "2" || clean === "2️⃣") {
+            reply = configData.price_content;
+        } else if (clean === "location" || clean === "address" || clean === "3" || clean === "3️⃣") {
+            reply = configData.location_content;
+        } else if (clean === "timings" || clean === "timing" || clean === "hours" || clean === "4" || clean === "4️⃣") {
+            reply = configData.timings_content;
+        } else if (clean === "human" || clean === "support" || clean === "agent" || clean === "5" || clean === "5️⃣") {
+            reply = "🚨 *Talk to Human Request Received!*\n\nI have logged your request and notified the owner. A human agent will connect with you shortly. 🙏";
+            handoff = true;
+            
+            // Add a new pending handoff in demo state
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const newHandoff = {
+                id: Date.now(),
+                phone: "+15550199",
+                timestamp: `Today at ${timeStr}`,
+                initial_message: text,
+                status: "Pending"
+            };
+            handoffData.unshift(newHandoff);
+            localStorage.setItem("demo_handoffs", JSON.stringify(handoffData));
+        } else {
+            // Check custom keywords
+            let matched = false;
+            for (let item of (configData.custom_keywords || [])) {
+                const kw = item.keyword.toLowerCase().trim();
+                if (kw && (clean === kw || clean.includes(` ${kw} `) || clean.startsWith(`${kw} `) || clean.endsWith(` ${kw}`))) {
+                    reply = item.response;
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                reply = configData.greeting_message;
+            }
+        }
+
+        // Simulating off-hours notice appending
+        const mockNow = new Date();
+        const mockHour = mockNow.getHours();
+        // Assume operating hours 11:00-23:00 (11 AM to 11 PM) for demo
+        if (mockHour < 11 || mockHour >= 23) {
+            reply = `${reply}\n\n⚠️ *[OFF-HOURS NOTICE]*\n${configData.off_hours_message}`;
+        }
+
+        return { response: reply, handoff_triggered: handoff };
+    }
 
     // Live Chat Simulator logic
     if (chatSendForm) {
@@ -564,47 +696,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Append Outgoing Customer Message
             appendSimulatorBubble(text, "outgoing");
-
-            // Scroll to bottom
             scrollToBottom();
 
             // Emulate "Typing..." state
             showSimulatorTyping(true);
 
-            try {
-                // Post to simulator endpoint
-                const response = await fetch(API_BASE_URL + "/api/simulator", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        message: text,
-                        phone: "+15550199" // Mock tester phone
-                    })
-                });
-
-                if (!response.ok) throw new Error("HTTP error simulating response.");
-                const data = await response.json();
-
-                // Add small organic delay (700ms) for organic typing feeling
+            if (isDemoMode) {
                 setTimeout(() => {
                     showSimulatorTyping(false);
-                    appendSimulatorBubble(data.response, "incoming");
+                    const result = processDemoSimulatorReply(text);
+                    appendSimulatorBubble(result.response, "incoming");
                     scrollToBottom();
 
-                    // If handoff was triggered, refresh handoff inbox in background!
-                    if (data.handoff_triggered) {
-                        fetchHandoffs();
+                    if (result.handoff_triggered) {
+                        renderHandoffs(handoffData);
                         showToast("🚨 Alert: Customer requested human assistance!");
                     }
                 }, 750);
+            } else {
+                try {
+                    const response = await fetch(API_BASE_URL + "/api/simulator", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            message: text,
+                            phone: "+15550199" // Mock tester phone
+                        })
+                    });
 
-            } catch (error) {
-                console.error("Error running simulation:", error);
-                setTimeout(() => {
-                    showSimulatorTyping(false);
-                    appendSimulatorBubble("⚠️ *Error:* Failed to receive response from server. Make sure FastAPI server is running.", "incoming");
-                    scrollToBottom();
-                }, 500);
+                    if (!response.ok) throw new Error("HTTP error simulating response.");
+                    const data = await response.json();
+
+                    setTimeout(() => {
+                        showSimulatorTyping(false);
+                        appendSimulatorBubble(data.response, "incoming");
+                        scrollToBottom();
+
+                        if (data.handoff_triggered) {
+                            fetchHandoffs();
+                            showToast("🚨 Alert: Customer requested human assistance!");
+                        }
+                    }, 750);
+
+                } catch (error) {
+                    console.error("Error running simulation:", error);
+                    setTimeout(() => {
+                        showSimulatorTyping(false);
+                        appendSimulatorBubble("⚠️ *Error:* Failed to receive response from server. Make sure FastAPI server is running.", "incoming");
+                        scrollToBottom();
+                    }, 500);
+                }
             }
         });
     }
@@ -655,20 +796,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-
     // INITIAL LOADING RUNS
     async function init() {
         updateConnectionStateUI();
-        if (!isLocalhost && !API_BASE_URL) {
-            // Show connection modal overlay if not on localhost
+        if (!isDemoMode && !isLocalhost && !API_BASE_URL) {
             if (connectionModal) connectionModal.classList.remove("hidden");
             return;
         }
         await loadConfig();
         await fetchHandoffs();
         
-        // Auto refresh handoff inbox every 8 seconds in background
-        setInterval(fetchHandoffs, 8000);
+        // Auto refresh handoff inbox every 8 seconds in background (disabled in demo to prevent console spam)
+        if (!isDemoMode) {
+            setInterval(fetchHandoffs, 8000);
+        }
     }
 
     init();
